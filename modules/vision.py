@@ -1,16 +1,14 @@
-import jetson.inference
-import jetson.utils
 import cv2
 import numpy as np
-from picamera import PiCamera
-from picamera.array import PiRGBArray
+from picamera2 import PiCamera
+from picamera2.array import PiRGBArray
 
-net = None
 camera = None
 
+#function calculating distance :
+
 def initialize_detector():
-    global net, camera
-    net = jetson.inference.detectNet("ssd-mobilenet-v2")
+    global camera
     camera = PiCamera()
     camera.resolution = (640, 480)
     camera.framerate = 32
@@ -29,14 +27,15 @@ def get_detections():
     img = raw_capture.array
     raw_capture.truncate(0)
 
-    detections = net.Detect(jetson.utils.cudaFromNumpy(img))
-    for detection in detections:
-        if detection.ClassID == 1:  # Remove unwanted classes
-            person_detections.append(detection)
+    # Assuming some method to get person_detections, you may need to replace this
+    # For example, using OpenCV contour detection:
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-    fps = net.GetNetworkFPS()
+    person_detections = contours
 
-    return person_detections, fps, img
+    return person_detections, img
 
 def getCenter(contour):
     M = cv2.moments(contour)
@@ -45,20 +44,18 @@ def getCenter(contour):
     return cx, cy
 
 def getDelta(point1, point2):
-    return math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+    return np.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
 
 def process(output_img, person_detections):
     gray = cv2.cvtColor(output_img, cv2.COLOR_BGR2GRAY)
 
-    # Assuming filtered_contours is similar to person_detections
-    filtered_contours = [np.array(detection.Keypoints).reshape(-1, 2).astype(np.int32) for detection in person_detections]
+    filtered_contours = person_detections
 
     centerpoint = (round(output_img.shape[1] / 2), round(output_img.shape[0] / 2))
 
     count = 0
     target = ((centerpoint[0], centerpoint[1]), 0)
     if len(filtered_contours) > 1:
-        # decision needs to be made to which target drone needs to go
         for contour in filtered_contours:
             targetCenter = getCenter(contour)
             if count == 0:
@@ -98,7 +95,7 @@ if __name__ == "__main__":
     initialize_detector()
 
     while True:
-        detections, fps, img = get_detections()
+        detections, img = get_detections()
 
         # Process the detections as needed
         processed_img = process(img, detections)
