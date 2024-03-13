@@ -2,8 +2,8 @@ import cv2
 import time
 import numpy as np
 import pyrealsense2 as rs
-from picamera import PiCamera
-from picamera.array import PiRGBArray
+from picamera2 import PiCamera
+from picamera2.array import PiRGBArray
 
 # Realsense required variables
 pipeline = None
