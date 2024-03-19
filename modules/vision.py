@@ -1,11 +1,8 @@
 import cv2
 import numpy as np
-from picamera2 import PiCamera
-from picamera2.array import PiRGBArray
+from picamera2 import Picamera2
 
 camera = None
-
-#function calculating distance :
 
 def initialize_detector():
     global camera
@@ -22,11 +19,9 @@ def close_camera():
 
 def get_detections():
     person_detections = []
-    raw_capture = PiRGBArray(camera, size=(640, 480))
-    camera.capture(raw_capture, format="bgr", use_video_port=True)
-    img = raw_capture.array
-    raw_capture.truncate(0)
-
+    img = np.empty((480, 640, 3), dtype=np.uint8)
+    camera.capture(img, format='bgr')
+    
     # Assuming some method to get person_detections, you may need to replace this
     # For example, using OpenCV contour detection:
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
