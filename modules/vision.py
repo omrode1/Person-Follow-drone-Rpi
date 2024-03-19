@@ -15,7 +15,10 @@ def get_image_size():
     return 640, 480  # Assuming fixed resolution for Pi Camera
 
 def close_camera():
-    camera.close()
+    global camera
+    if camera:
+        camera.close()
+        print("Camera closed")
 
 def get_detections():
     person_detections = []
@@ -87,17 +90,19 @@ def process(output_img, person_detections):
     return output_img
 
 if __name__ == "__main__":
-    initialize_detector()
+    try:
+        initialize_detector()
 
-    while True:
-        detections, img = get_detections()
+        while True:
+            detections, img = get_detections()
 
-        # Process the detections as needed
-        processed_img = process(img, detections)
+            # Process the detections as needed
+            processed_img = process(img, detections)
 
-        cv2.imshow("Detected Objects", processed_img)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            cv2.imshow("Detected Objects", processed_img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
-    close_camera()
-    cv2.destroyAllWindows()
+    finally:
+        close_camera()
+        cv2.destroyAllWindows()
