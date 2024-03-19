@@ -1,4 +1,5 @@
 import sys
+sys.path.append('/path/to/modules')  #replace this with actual modules path
 import time
 import argparse
 import cv2
