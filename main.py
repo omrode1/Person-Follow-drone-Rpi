@@ -49,7 +49,7 @@ def setup():
 setup()
 
 # initialize PiCamera
-camera = PiCamera()
+camera = Picamera2()
 camera.resolution = (640, 480)
 camera.framerate = 32
 
