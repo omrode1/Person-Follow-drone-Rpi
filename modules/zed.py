@@ -1,9 +1,7 @@
 import cv2
 import time
 import numpy as np
-import pyrealsense2 as rs
-from picamera2 import PiCamera
-from picamera2.array import PiRGBArray
+from picamera2 import Picamera2
 
 # Realsense required variables
 pipeline = None
@@ -64,10 +62,8 @@ def get_rgbd_image_realsense():
 def get_rgbd_image_picamera():
     global camera
 
-    raw_capture = PiRGBArray(camera, size=(640, 480))
-    camera.capture(raw_capture, format="bgr", use_video_port=True)
-    rgb_image = raw_capture.array
-    raw_capture.truncate(0)
+    rgb_image = np.empty((480, 640, 3), dtype=np.uint8)
+    camera.capture(rgb_image, format='bgr')
 
     # Dummy depth image (all zeros) since PiCamera doesn't provide depth information
     depth_image = np.zeros_like(rgb_image[:, :, 0], dtype=np.uint16)
