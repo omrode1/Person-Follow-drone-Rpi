@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from picamera2 import PiCamera
+from picamera2 import Picamera2
 
 camera = None
 
