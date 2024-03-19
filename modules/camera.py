@@ -5,7 +5,7 @@ from picamera2 import Picamera2
 cams = []
 
 def create_camera():
-    camera = PiCamera()
+    camera = Picamera2()
     camera.resolution = (640, 480)
     camera.framerate = 32
     cams.append(camera)
