@@ -6,7 +6,7 @@ camera = None
 
 def initialize_detector():
     global camera
-    camera = PiCamera()
+    camera = Picamera2()
     camera.resolution = (640, 480)
     camera.framerate = 32
     print("Camera initialized")
