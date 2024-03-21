@@ -75,29 +75,79 @@ def track():
             # your tracking logic here
 
 def search():
-    # implementation of search function
-    pass
+    print("State is SEARCH -> " + STATE)
+    start = time.time()
+    
+    control.stop_drone()
+    while time.time() - start < 40:
+        if keyboard.is_pressed('q'):  # if key 'q' is pressed 
+            print("Closing due to manual interruption")
+            land() # Closes the loop and program
+
+        detections, fps, image = detector.get_detections()
+        print("searching: " + str(len(detections)))
+        if len(detections) > 0:
+            return "track"
+        if "test" == args.mode:
+            cv2.putText(image, "searching target. Time left: " + str(40 - (time.time() - start)), (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+            visualize(image)
+
+    return "land"
 
 def takeoff():
-    # implementation of takeoff function
-    pass
+    control.print_drone_report()
+    print("State = TAKEOFF -> " + STATE)
+    control.arm_and_takeoff(MAX_ALT) #start control when drone is ready
+    return "search"
 
 def land():
-    # implementation of land function
-    pass
+    print("State = LAND -> " + STATE)
+    control.land()
+    detector.close_camera()
+    sys.exit(0)
 
 def visualize(img):
-    # implementation of visualize function
-    pass
+    if "flight" == args.mode:
+        debug_image_writer.write(img)
+    else:
+        cv2.imshow("out", img)
+        cv2.waitKey(1)
+    return
+
 
 def prepare_visualisation(lidar_distance, person_center, person_to_track, image, yaw_command, x_delta, y_delta, fps,
                           velocity_x_command, lidar_on_target):
-    # implementation of prepare_visualisation function
-    pass
+ lidar_vis_x = image_width - 50
+    lidar_vis_y = image_height - 50
+    lidar_vis_y2 = int(image_height - lidar_distance * 200)
+    cv2.line(image, (lidar_vis_x,lidar_vis_y), (lidar_vis_x, lidar_vis_y2), (0, 255, 0), thickness=10, lineType=8, shift=0)
+    cv2.putText(image, "distance: " + str(round(lidar_distance,2)), (image_width - 300, 200), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+
+    #draw path
+    cv2.line(image, (int(image_center[0]), int(image_center[1])), (int(person_center[0]), int(person_center[1])), (255, 0, 0), thickness=10, lineType=8, shift=0)
+
+    #draw bbox around target
+    cv2.rectangle(image,(int(person_to_track.Left),int(person_to_track.Bottom)), (int(person_to_track.Right),int(person_to_track.Top)), (0,0,255), thickness=10)
+
+    #show drone center
+    cv2.circle(image, (int(image_center[0]), int(image_center[1])), 20, (0, 255, 0), thickness=-1, lineType=8, shift=0)
+
+    #show trackable center
+    cv2.circle(image, (int(person_center[0]), int(person_center[1])), 20, (0, 0, 255), thickness=-1, lineType=8, shift=0)
+
+    #show stats
+    cv2.putText(image, "fps: " + str(round(fps,2)) + " yaw: " + str(round(yaw_command,2)) + " forward: " + str(round(velocity_x_command,2)) , (50, 50), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+    cv2.putText(image, "lidar_on_target: " + str(lidar_on_target), (50, 100), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+    cv2.putText(image, "x_delta: " + str(round(x_delta,2)) + " y_delta: " + str(round(y_delta,2)), (50, 150), cv2.FONT_HERSHEY_SIMPLEX , 1, (0, 0, 255), 3, cv2.LINE_AA) 
+
+    visualize(image)
 
 def calculate_ma(ma_array):
-    # implementation of calculate_ma function
-    pass
+    sum_ma = 0
+    for i in ma_array:
+        sum_ma = sum_ma + i
+
+    return sum_ma / len(ma_array)
 
 while True:
     # main program loop
